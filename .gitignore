@@ -1,0 +1,20 @@
+# Dados
+data/
+
+# Resultados
+results/
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Virtual environment
+AI_ML_trab_final/
+venv/
+
+# IDE
+.vscode/
+
+# Modelo salvo
+*.pt
