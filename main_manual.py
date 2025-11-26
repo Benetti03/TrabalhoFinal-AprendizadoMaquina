@@ -1,5 +1,6 @@
 import argparse
 import os
+import ssl
 from collections import defaultdict
 
 import numpy as np
@@ -230,6 +231,9 @@ def parse_args():
 
 
 if __name__ == '__main__':
+    # Disable SSL verification to handle expired certificates for pretrained models
+    ssl._create_default_https_context = ssl._create_unverified_context
+
     args = parse_args()
     print(args)
 

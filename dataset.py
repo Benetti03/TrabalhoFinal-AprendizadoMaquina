@@ -12,19 +12,18 @@ from torchvision import transforms
 
 
 def file_iter(dataroot):
-    for file in glob(join(dataroot, '*', '*', '*')):
+    for file in glob(join(dataroot, 'training_data', '*', '*', '*')):
         yield file
 
 
 def file_match_iter(dataroot):
-    pattern = re.compile(r'(?P<file>.*(?P<fold>[a-zA-Z0-9_]+)/'
-                         r'(?P<class>hem|all)/'
+    pattern = re.compile(r'(?P<file>.*[/\\](?P<fold>fold_\d+)[/\\]'
+                         r'(?P<class>hem|all)[/\\]'
                          r'UID_(?P<subject>H?\d+)_(?P<image>\d+)_(?P<cell>\d+)_(all|hem).bmp)')
     for file in file_iter(dataroot):
         match = pattern.match(file)
         if match is not None:
             yield file, match
-
 
 def to_dataframe(dataroot):
     data = defaultdict(list)
@@ -36,11 +35,11 @@ def to_dataframe(dataroot):
             data[key].append(match.group(key))
 
     # Load data from the phase2 validation set
-    phase2 = pd.read_csv(join(dataroot, 'phase2.csv'), header=0, names=['file_id', 'file', 'class'])
+    phase2 = pd.read_csv(join(dataroot, 'validation_data', 'C-NMC_test_prelim_phase_data_labels.csv'), header=0, names=['file_id', 'file', 'class'])
     pattern = re.compile(r'UID_(?P<subject>H?\d+)_(?P<image>\d+)_(?P<cell>\d+)_(all|hem).bmp')
     for i, row in phase2.iterrows():
         match = pattern.match(row['file_id'])
-        data['file'].append(join(dataroot, f'phase2/{i+1}.bmp'))
+        data['file'].append(join(dataroot, 'validation_data', 'C-NMC_test_prelim_phase_data', f'{i+1}.bmp'))
         data['fold'].append('3')
         data['subject'].append(match.group('subject'))
         data['class'].append('hem' if row['class'] == 0 else 'all')
@@ -113,7 +112,7 @@ TF_VALID_NOROT = transforms.Compose([
 ])
 
 
-def get_dataset(dataroot, folds_train=(0, 1, 2), folds_valid=(3,), tf_train=TF_TRAIN, tf_valid=TF_VALID_ROT):
+def get_dataset(dataroot, folds_train=('fold_0', 'fold_1', 'fold_2'), folds_valid=('3',), tf_train=TF_TRAIN, tf_valid=TF_VALID_ROT):
     df = to_dataframe(dataroot)
     df_trainset = df.loc[df['fold'].isin(folds_train)]
     trainset = ISBI2019(df_trainset, transform=tf_train)
